@@ -6,11 +6,19 @@ const contactCreateSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().required(),
   phone: Joi.string().required(),
+  favorite: Joi.boolean(),
 });
 const contactUpdateSchema = Joi.object({
   name: Joi.string(),
   email: Joi.string(),
   phone: Joi.string(),
+  favorite: Joi.boolean(),
+}).min(1);
+const contactUpdateStatusSchema = Joi.object({
+  name: Joi.string(),
+  email: Joi.string(),
+  phone: Joi.string(),
+  favorite: Joi.boolean(),
 }).min(1);
 
 const router = express.Router();
@@ -40,7 +48,7 @@ router.get("/:contactId", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   const { error } = contactCreateSchema.validate(req.body);
-  const { name, email, phone } = req.body;
+  const { name, email, phone, favorite = false } = req.body;
 
   if (error) {
     return res.status(400).json({ message: "missing required name field" });
@@ -49,6 +57,7 @@ router.post("/", async (req, res, next) => {
     name,
     email,
     phone,
+    favorite,
   };
   const newContact = await contacts.addContact(body);
   res.status(201).json({
@@ -87,6 +96,26 @@ router.put("/:contactId", async (req, res, next) => {
     status: "success",
     code: 200,
     data: { updatedContact },
+  });
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  const { contactId } = req.params;
+  const { error } = contactUpdateStatusSchema.validate(req.body);
+  const { favorite: body } = req.body;
+
+  if (error) {
+    return res.status(400).json({ message: "missing field favorite" });
+  }
+
+  const updatedStatus = await contacts.updateStatusContact(contactId, body);
+  if (!updatedStatus) {
+    return res.status(404).json({ message: "Not found" });
+  }
+  res.json({
+    status: "success",
+    code: 200,
+    data: { updatedStatus },
   });
 });
 
