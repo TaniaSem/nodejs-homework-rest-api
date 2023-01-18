@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const secret = process.env.SECRET_KEY;
-const { User } = require("../db/usersModel");
+const { User } = require("../db/userModel");
 const { MiddlewareUnauthorizedError } = require("../helpers/error");
 
 const authMiddleware = async (req, res, next) => {

@@ -18,6 +18,8 @@ const { registr, login, logout } = require("../../models/users");
 
 authRouter.post("/registration", async (req, res, next) => {
   const { error } = userSingupSchema.validate(req.body);
+  const { email, password } = req.body;
+
   if (error) {
     return res.status(400).json({
       status: "Bad Request",
@@ -41,6 +43,7 @@ authRouter.post("/registration", async (req, res, next) => {
     next(error);
   }
 });
+
 authRouter.post("/login", async (req, res, next) => {
   const { error } = userLoginSchema.validate(req.body);
   const { email, password } = req.body;
@@ -81,7 +84,7 @@ authRouter.get("/logout", authMiddleware, async (req, res, next) => {
   }
 });
 
-authRouter.get("/current", auth, (req, res, next) => {
+authRouter.get("/current", authMiddleware, (req, res, next) => {
   try {
     const { email, subscription } = req.user;
     res.status(200).json({

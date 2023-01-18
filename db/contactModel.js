@@ -13,7 +13,7 @@ const contactSchema = new mongoose.Schema(
       type: String,
     },
     owner: {
-      type: SchemaTypes.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "user",
     },
     favorite: {

@@ -21,7 +21,13 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message });
+  if (err.status === 401) {
+    res.status(401).json({ message: err.message });
+  } else if (err.status === 409) {
+    res.status(409).json({ message: err.message });
+  } else {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = app;

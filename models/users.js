@@ -10,13 +10,17 @@ require("dotenv").config();
 const secret = process.env.SECRET_KEY;
 
 const registr = async (email, password) => {
-  const user = User.findOne({ email });
+  const user = await User.findOne({ email });
   if (user) {
     throw new RegistrationConflictError("Email in use");
   }
-  const newUser = new User({ email, password: bcrypt.hash(password, 10) });
+  const newUser = new User({
+    email,
+    password: await bcrypt.hash(password, 10),
+  });
   await newUser.save();
 };
+
 const login = async (email, password) => {
   const user = await User.findOne({ email });
   if (!user) {
@@ -36,6 +40,7 @@ const login = async (email, password) => {
     subscription: user.subscription,
   };
 };
+
 const logout = async (id) => {
   const user = await User.findById(id);
   if (!user) {
