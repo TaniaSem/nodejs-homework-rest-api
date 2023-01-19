@@ -1,6 +1,7 @@
 const express = require("express");
 const contacts = require("../../models/contacts");
 const Joi = require("joi");
+const { authMiddleware } = require("../../middlewares/authMiddleware");
 
 const contactCreateSchema = Joi.object({
   name: Joi.string().required(),
@@ -8,12 +9,14 @@ const contactCreateSchema = Joi.object({
   phone: Joi.string().required(),
   favorite: Joi.boolean(),
 });
+
 const contactUpdateSchema = Joi.object({
   name: Joi.string(),
   email: Joi.string(),
   phone: Joi.string(),
   favorite: Joi.boolean(),
 }).min(1);
+
 const contactUpdateStatusSchema = Joi.object({
   name: Joi.string(),
   email: Joi.string(),
@@ -23,8 +26,13 @@ const contactUpdateStatusSchema = Joi.object({
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const contactsList = await contacts.listContacts();
+router.get("/", authMiddleware, async (req, res, next) => {
+  const { page = 1, limit = 5 } = req.query;
+  const skip = (Number(page) - 1) * Number(limit);
+  const { _id } = req.user;
+  const limitToNumber = Number(limit);
+
+  const contactsList = await contacts.listContacts(_id, skip, limitToNumber);
 
   res.json({
     status: "success",
@@ -33,9 +41,10 @@ router.get("/", async (req, res, next) => {
   });
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", authMiddleware, async (req, res, next) => {
   const { contactId } = req.params;
-  const contact = await contacts.getContactById(contactId);
+  const { _id } = req.user;
+  const contact = await contacts.getContactById(contactId, _id);
   if (!contact) {
     return res.status(404).json({ message: "Not found" });
   }
@@ -46,9 +55,10 @@ router.get("/:contactId", async (req, res, next) => {
   });
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", authMiddleware, async (req, res, next) => {
   const { error } = contactCreateSchema.validate(req.body);
   const { name, email, phone, favorite = false } = req.body;
+  const { _id } = req.user;
 
   if (error) {
     return res.status(400).json({ message: "missing required name field" });
@@ -57,6 +67,7 @@ router.post("/", async (req, res, next) => {
     name,
     email,
     phone,
+    owner: _id,
     favorite,
   };
   const newContact = await contacts.addContact(body);
@@ -67,7 +78,7 @@ router.post("/", async (req, res, next) => {
   });
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete("/:contactId", authMiddleware, async (req, res, next) => {
   const { contactId } = req.params;
   const deletedContact = await contacts.removeContact(contactId);
   if (!deletedContact) {
@@ -76,7 +87,7 @@ router.delete("/:contactId", async (req, res, next) => {
   res.status(200).json({ message: "contact delete" });
 });
 
-router.put("/:contactId", async (req, res, next) => {
+router.put("/:contactId", authMiddleware, async (req, res, next) => {
   const { error } = contactUpdateSchema.validate(req.body);
   const { contactId } = req.params;
   const { name, email, phone } = req.body;
@@ -99,7 +110,7 @@ router.put("/:contactId", async (req, res, next) => {
   });
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+router.patch("/:contactId/favorite", authMiddleware, async (req, res, next) => {
   const { contactId } = req.params;
   const { error } = contactUpdateStatusSchema.validate(req.body);
   const { favorite: body } = req.body;
