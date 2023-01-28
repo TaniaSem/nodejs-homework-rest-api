@@ -1,8 +1,8 @@
-const { Contact } = require("../db/contactModel");
+const {Contact} = require('../db/contactModel');
 
 const listContacts = async (id, skip, limit) => {
   try {
-    const contacts = await Contact.find({ owner: id }, "", {
+    const contacts = await Contact.find({owner: id}, '', {
       skip,
       limit,
     });
@@ -14,9 +14,9 @@ const listContacts = async (id, skip, limit) => {
 
 const getContactById = async (contactId, id) => {
   try {
-    const contacts = await Contact.find({ owner: id });
+    const contacts = await Contact.find({owner: id});
     const foundContact = contacts.filter(
-      (contact) => contact._id === contactId
+        (contact) => contact._id === contactId,
     );
     if (!foundContact) {
       return null;
@@ -36,9 +36,9 @@ const removeContact = async (contactId) => {
   }
 };
 
-const addContact = async ({ name, email, phone, owner, favorite }) => {
+const addContact = async ({name, email, phone, owner, favorite}) => {
   try {
-    const newContact = new Contact({ name, email, phone, owner, favorite });
+    const newContact = new Contact({name, email, phone, owner, favorite});
     await newContact.save();
     return newContact;
   } catch (error) {
@@ -60,11 +60,11 @@ const updateContact = async (contactId, body) => {
 const updateContactStatus = async (contactId, favorite) => {
   try {
     const updateStatus = await Contact.findByIdAndUpdate(
-      contactId,
-      { favorite },
-      {
-        new: true,
-      }
+        contactId,
+        {favorite},
+        {
+          new: true,
+        },
     );
     return updateStatus;
   } catch (error) {
