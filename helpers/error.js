@@ -36,10 +36,18 @@ class MiddlewareUnauthorizedError extends Error {
   }
 }
 
+class VerifyError extends Error {
+  constructor(message) {
+    super(message);
+    this.status = 404;
+  }
+}
+
 module.exports = {
   LoginAuthError,
   LoginValidationError,
   RegistrationConflictError,
   LogoutUnauthorizedError,
   MiddlewareUnauthorizedError,
+  VerifyError,
 };

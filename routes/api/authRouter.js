@@ -19,7 +19,18 @@ const userLoginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-const {registr, login, logout, updateAvatar} = require('../../models/users');
+const verifySchema = Joi.object({
+  email: Joi.string().required(),
+});
+
+const {
+  registr,
+  login,
+  logout,
+  updateAvatar,
+  verify,
+  reVarification,
+} = require('../../models/users');
 
 authRouter.post('/registration', async (req, res, next) => {
   const {error} = userSingupSchema.validate(req.body);
@@ -98,6 +109,45 @@ authRouter.get('/current', authMiddleware, (req, res, next) => {
       ResponseBody: {
         email: email,
         subscription: subscription,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.get('/verify/:verificationToken', async (req, res, next) => {
+  const {verificationToken} = req.params;
+  try {
+    await verify(verificationToken);
+    res.status(200).json({
+      status: 'OK',
+      ResponseBody: {
+        message: 'Verification successful',
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.post('/verify', async (req, res, next) => {
+  const {error} = verifySchema.validate(req.body);
+  const {email} = req.body;
+  if (error) {
+    return res.status(400).json({
+      status: 'Bad Request',
+      ResponseBody: {
+        message: 'missing required field email',
+      },
+    });
+  }
+  try {
+    await reVarification(email);
+    res.status(200).json({
+      status: 'OK',
+      ResponseBody: {
+        message: 'Verification email sent',
       },
     });
   } catch (error) {
